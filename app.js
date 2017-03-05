@@ -91,11 +91,33 @@ function App() {
   self.lighten = function() {
     console.log('lightening image...');
 
+    var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
+    self.imageDataWrapper.eachPixel(function(pixel) {
+      pixel.r += 10;
+      pixel.g += 10;
+      pixel.b += 10;
+      imageDataCopy.setPixel(pixel);
+    });
+
+    self.drawImageData(imageDataCopy.imgData);
+    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
+
     console.log('image lightened');
   };
 
   self.darken = function() {
     console.log('darkening image...');
+
+    var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
+    self.imageDataWrapper.eachPixel(function(pixel) {
+      pixel.r -= 10;
+      pixel.g -= 10;
+      pixel.b -= 10;
+      imageDataCopy.setPixel(pixel);
+    });
+
+    self.drawImageData(imageDataCopy.imgData);
+    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
 
     console.log('image darkened');
   };
@@ -120,11 +142,11 @@ function App() {
     });
     self.elements.btnLighten.on('click', function() {
       console.log('btnLighten clicked');
-      lighten();
+      self.lighten();
     });
     self.elements.btnDarken.on('click', function() {
       console.log('btnDarken clicked');
-      darken();
+      self.darken();
     });
     self.elements.btnPrevImage.on('click', function() {
       console.log('btnPrevImage clicked');
@@ -179,36 +201,6 @@ function ImageDataWrapper(imgData) {
   var self = this;
 
   self.imgData = imgData || { };
-
-  // self.getPixelGrid = function() {
-  //   var rows = [];
-  //   var cols = [];
-  //
-  //   var rowIndex = 0;
-  //   var colIndex = 0;
-  //   for (var i = 0; i < self.imgData.data.length; i+=4) {
-  //     // TBC : If i is first index in row, add to rows and start new row
-  //     if (i % (self.imgData.width * 4) === 0) {
-  //       rowIndex++;
-  //       rows[rowIndex] = cols;
-  //       colIndex = 0;
-  //       cols = [];
-  //     }
-  //     var pixel = { };
-  //
-  //     pixel.row = rowIndex;
-  //     pixel.col = colIndex;
-  //     pixel.r = self.imgData.data[i];
-  //     pixel.g = self.imgData.data[i+1];
-  //     pixel.b = self.imgData.data[i+2];
-  //     pixel.a = self.imgData.data[i+3];
-  //
-  //     cols[colIndex] = pixel;
-  //     colIndex++;
-  //   }
-  //
-  //   return rows;
-  // };
 
   self.getPixel = function(row, col) {
     var rowOffset = self.imgData.width * row * 4;
