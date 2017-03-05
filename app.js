@@ -32,6 +32,7 @@ function App() {
     self.elements.btnDarken = $('#btn-darken');
     self.elements.btnPrevImage = $('#btn-previmg');
     self.elements.btnNextImage = $('#btn-nextimg');
+    disableElements();
 
     canvas = self.elements.canvas[0]; // TBC : Grab vanilla canvas reference from jquery wrapper
     context = canvas.getContext('2d');
@@ -39,7 +40,50 @@ function App() {
     bindEventHandlers();
     loadImages(function(){
       self.drawImage(self.imageCursorIndex);
+      self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
+      enableElements();
+      console.log('app initialized');
     });
+  };
+
+  self.prevImage = function() {
+    console.log('loading prev image...');
+
+    // TBC : Subtract image cursor, unless 0.
+    // If 0, go to max end of array
+    self.imageCursorIndex === 0 ? self.imageCursorIndex = Object.keys(imgNames).length - 1 : self.imageCursorIndex--;
+    self.drawImage(self.imageCursorIndex);
+
+    console.log('prev image loaded');
+  };
+
+  self.nextImage = function() {
+    console.log('loading next image...');
+
+    // TBC : Add to image cursor, unless max.
+    // If max, go to beginning of array
+    self.imageCursorIndex === Object.keys(imgNames).length - 1 ? self.imageCursorIndex = 0 : self.imageCursorIndex++;
+    self.drawImage(self.imageCursorIndex);
+
+    console.log('next image loaded');
+  };
+
+  self.greyscale = function() {
+    console.log('greyscaling image...');
+
+    console.log('image greyscaled');
+  };
+
+  self.lighten = function() {
+    console.log('lightening image...');
+
+    console.log('image lightened');
+  };
+
+  self.darken = function() {
+    console.log('darkening image...');
+
+    console.log('image darkened');
   };
 
   self.drawImage = function(index) {
@@ -70,11 +114,11 @@ function App() {
     });
     self.elements.btnPrevImage.on('click', function() {
       console.log('btnPrevImage clicked');
-      prevImage();
+      self.prevImage();
     });
     self.elements.btnNextImage.on('click', function() {
       console.log('btnNextImage clicked');
-      nextImage();
+      self.nextImage();
     });
   };
 
@@ -99,41 +143,25 @@ function App() {
     });
   };
 
-  var prevImage = function() {
-    console.log('loading prev image...');
-
-    console.log('prev image loaded');
+  var enableElements = function() {
+    for (var key in self.elements) {
+      var elem = self.elements[key];
+      elem.prop('disabled', false);
+    }
   };
 
-  var nextImage = function() {
-    console.log('loading next image...');
-
-    console.log('next image loaded');
-  };
-
-  var greyscale = function() {
-    console.log('greyscaling image...');
-
-    console.log('image greyscaled');
-  };
-
-  var lighten = function() {
-    console.log('lightening image...');
-
-    console.log('image lightened');
-  };
-
-  var darken = function() {
-    console.log('darkening image...');
-
-    console.log('image darkened');
+  var disableElements = function() {
+    for (var key in self.elements) {
+      var elem = self.elements[key];
+      elem.prop('disabled', true);
+    }
   };
 
   self.initialize();
   return self;
 }
 
-function ImgDataWrapper(imgData) {
+function ImageDataWrapper(imgData) {
   var self = this;
 
   self.data = imgData || [];
