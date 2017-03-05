@@ -14,11 +14,11 @@ function App() {
   self.imageDataWrapper = { };
 
   var imgNames = [
-    'autumn.jpg',
     'balls.jpg',
-    'berries.jpg',
+    'woods.jpg',
     'flag.jpg',
-    'woods.jpg'
+    'autumn.jpg',
+    'berries.jpg'
   ];
   var context = { };
   var canvas = { };
@@ -40,7 +40,10 @@ function App() {
     bindEventHandlers();
     loadImages(function(){
       self.drawImage(self.imageCursorIndex);
-      self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
+      self.imageDataWrapper = new ImageDataWrapper(
+        self.getImageDataFromCanvas(), {
+        rowWidth: canvas.width
+      });
       enableElements();
       console.log('app initialized');
     });
@@ -161,10 +164,72 @@ function App() {
   return self;
 }
 
-function ImageDataWrapper(imgData) {
+function ImageDataWrapper(imgData, options) {
   var self = this;
 
   self.data = imgData || [];
+  self.rowWidth = options.rowWidth || 500;
+
+  self.getPixelGrid = function() {
+    var rows = [];
+    var cols = [];
+
+    for (var i = 0; i < self.data.length; i+=4) {
+      // TBC : If i is first index in row, add to rows and start new row
+      if (i % (self.rowWidth * 4) === 0) {
+        rows.push(cols);
+        cols = [];
+      }
+      var pixel = { };
+
+      pixel.r = self.data[i];
+      pixel.g = self.data[i+1];
+      pixel.b = self.data[i+2];
+      pixel.a = self.data[i+3];
+
+      cols.push(pixel);
+    }
+
+    return rows;
+  };
+
+  self.getPixel = function(row, col) {
+    var rowOffset = self.rowWidth * row * 4;
+    var colOffset = col * 4;
+    var adjustedIndex = rowOffset + colOffset;
+
+    return {
+      row: row,
+      col: col,
+      r: self.data[adjustedIndex],
+      g: self.data[adjustedIndex + 1],
+      b: self.data[adjustedIndex + 2],
+      a: self.data[adjustedIndex + 3]
+    }
+  };
+
+  self.setPixel = function(pixel) {
+    var rowOffset = self.rowWidth * pixel.row * 4;
+    var colOffset = pixel.col * 4;
+    var adjustedIndex = rowOffset + colOffset;
+
+    self.data[adjustedIndex] = pixel.r;
+    self.data[adjustedIndex + 1] = pixel.g;
+    self.data[adjustedIndex + 2] = pixel.b;
+    self.data[adjustedIndex + 3] = pixel.a;
+  };
+
+  // TBC : Deep copy an element
+  self.clone = function() {
+    // TBC : Call constructor of original object to create a new copy
+    var copy = self.constructor();
+
+    // TBC : Map all properties and values of original to copy
+    for (var key in self) {
+        if (self.hasOwnProperty(key)) copy[key] = self[key];
+    }
+    return copy;
+  }
 
   return self;
 }
