@@ -1,0 +1,9 @@
+#canvas {
+  border: 1px solid lightgrey;
+  border-radius: 2px;
+}
+
+.button {
+  width: 100%;
+  padding: 10px;
+}
