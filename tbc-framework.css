@@ -1,0 +1,87 @@
+* {
+  font-family: arial;
+  box-sizing: border-box !important; /* So that border calculation is factored into size */
+}
+
+/* TBC : Custom Grid System */
+.container {
+  width: auto;
+}
+
+.row {
+  width: auto;
+  padding: 10px;
+}
+
+.row::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.col-1 { width: 8.33%; }
+.col-2 { width: 16.66%; }
+.col-3 { width: 25%; }
+.col-4 { width: 33.33%; }
+.col-5 { width: 41.66%; }
+.col-6 { width: 50%; }
+.col-7 { width: 58.33%; }
+.col-8 { width: 66.66%; }
+.col-9 { width: 75%; }
+.col-10 { width: 83.33%; }
+.col-11 { width: 91.66%; }
+.col-12 { width: 100%; }
+
+[class*='col-'] {
+  float: left;
+}
+
+[class*='col-'] {
+  padding-right: 20px;
+}
+
+[class*='col-']:last-of-type {
+  padding-right: 0;
+}
+
+/* Utilities */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.inline { display: inline; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+
+.float-left { float: left; }
+.float-right { float: right; }
+.clear-float { clear: both; }
+
+.bg-darkprimary { background: #1976D2; }
+.bg-primary { background: #2196F3; }
+.bg-lightprimary { background: #BBDEFB; }
+.bg-accent { background: #FF5252; }
+.text-light { color: #FFFFFF; }
+.text-med { color: #757575; }
+.text-dark { color: #212121; }
+.border-color { border-color: #BDBDBD; }
+
+.button {
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.flex-container-row {
+  display: flex;
+  flex-flow: row;
+}
+
+.flex-container-col {
+  display: flex;
+  flex-flow: column;;
+}
+
+.flex-item {
+  flex: 1 0;
+}
