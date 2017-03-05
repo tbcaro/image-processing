@@ -24,55 +24,45 @@ function App() {
   var canvas = { };
 
   self.initialize = function() {
-    console.log('app initializing...');
-
     self.elements.canvas = $('#canvas');
     self.elements.btnGreyscale = $('#btn-greyscale');
     self.elements.btnLighten = $('#btn-lighten');
     self.elements.btnDarken = $('#btn-darken');
+    self.elements.btnPixelate = $('#btn-pixelate');
     self.elements.btnPrevImage = $('#btn-previmg');
     self.elements.btnNextImage = $('#btn-nextimg');
-    disableElements();
+    self.elements.btnResetImage = $('#btn-reset');
 
     canvas = self.elements.canvas[0]; // TBC : Grab vanilla canvas reference from jquery wrapper
     context = canvas.getContext('2d');
 
     bindEventHandlers();
-    loadImages(function(){
+    self.loadImages(function(){
       self.drawImage(self.imageCursorIndex);
       self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
-      enableElements();
-      console.log('app initialized');
     });
   };
 
   self.prevImage = function() {
-    console.log('loading prev image...');
-
     // TBC : Subtract image cursor, unless 0.
     // If 0, go to max end of array
     self.imageCursorIndex === 0 ? self.imageCursorIndex = Object.keys(imgNames).length - 1 : self.imageCursorIndex--;
-    self.drawImage(self.imageCursorIndex);
-    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
-
-    console.log('prev image loaded');
+    self.resetImage();
   };
 
   self.nextImage = function() {
-    console.log('loading next image...');
-
     // TBC : Add to image cursor, unless max.
     // If max, go to beginning of array
     self.imageCursorIndex === Object.keys(imgNames).length - 1 ? self.imageCursorIndex = 0 : self.imageCursorIndex++;
+    self.resetImage();
+  };
+
+  self.resetImage = function() {
     self.drawImage(self.imageCursorIndex);
     self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
-
-    console.log('next image loaded');
   };
 
   self.greyscale = function() {
-    console.log('greyscaling image...');
-
     var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
     self.imageDataWrapper.eachPixel(function(pixel) {
       var avg = (pixel.r + pixel.g + pixel.b) / 3;
@@ -83,14 +73,9 @@ function App() {
     });
 
     self.drawImageData(imageDataCopy.imgData);
-    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
-
-    console.log('image greyscaled');
   };
 
   self.lighten = function() {
-    console.log('lightening image...');
-
     var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
     self.imageDataWrapper.eachPixel(function(pixel) {
       pixel.r += 10;
@@ -100,14 +85,9 @@ function App() {
     });
 
     self.drawImageData(imageDataCopy.imgData);
-    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
-
-    console.log('image lightened');
   };
 
   self.darken = function() {
-    console.log('darkening image...');
-
     var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
     self.imageDataWrapper.eachPixel(function(pixel) {
       pixel.r -= 10;
@@ -117,48 +97,13 @@ function App() {
     });
 
     self.drawImageData(imageDataCopy.imgData);
-    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
-
-    console.log('image darkened');
   };
 
-  self.drawImage = function(index) {
-    var img = self.images[index];
-    context.drawImage(img, 0, 0);
+  self.pixelate = function() {
+
   };
 
-  self.drawImageData = function(imageData) {
-     context.putImageData(imageData, 0, 0);
-  };
-
-  self.getImageDataFromCanvas = function() {
-    return context.getImageData(0, 0, canvas.width, canvas.height);
-  };
-
-  var bindEventHandlers = function() {
-    self.elements.btnGreyscale.on('click', function() {
-      console.log('btnGreyscale clicked');
-      self.greyscale();
-    });
-    self.elements.btnLighten.on('click', function() {
-      console.log('btnLighten clicked');
-      self.lighten();
-    });
-    self.elements.btnDarken.on('click', function() {
-      console.log('btnDarken clicked');
-      self.darken();
-    });
-    self.elements.btnPrevImage.on('click', function() {
-      console.log('btnPrevImage clicked');
-      self.prevImage();
-    });
-    self.elements.btnNextImage.on('click', function() {
-      console.log('btnNextImage clicked');
-      self.nextImage();
-    });
-  };
-
-  var loadImages = function(callback) {
+  self.loadImages = function(callback) {
     self.images = [];
 
     var totalImages = Object.keys(imgNames).length;
@@ -179,18 +124,28 @@ function App() {
     });
   };
 
-  var enableElements = function() {
-    for (var key in self.elements) {
-      var elem = self.elements[key];
-      elem.prop('disabled', false);
-    }
+  self.drawImage = function(index) {
+    var img = self.images[index];
+    context.drawImage(img, 0, 0);
   };
 
-  var disableElements = function() {
-    for (var key in self.elements) {
-      var elem = self.elements[key];
-      elem.prop('disabled', true);
-    }
+  self.drawImageData = function(imageData) {
+     context.putImageData(imageData, 0, 0);
+     self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
+  };
+
+  self.getImageDataFromCanvas = function() {
+    return context.getImageData(0, 0, canvas.width, canvas.height);
+  };
+
+  var bindEventHandlers = function() {
+    self.elements.btnGreyscale.on('click', function() { self.greyscale(); });
+    self.elements.btnLighten.on('click', function() { self.lighten(); });
+    self.elements.btnDarken.on('click', function() { self.darken(); });
+    self.elements.btnPixelate.on('click', function() { self.pixelate(); });
+    self.elements.btnPrevImage.on('click', function() { self.prevImage(); });
+    self.elements.btnNextImage.on('click', function() { self.nextImage(); });
+    self.elements.btnResetImage.on('click', function() { self.resetImage(); });
   };
 
   self.initialize();
@@ -203,29 +158,25 @@ function ImageDataWrapper(imgData) {
   self.imgData = imgData || { };
 
   self.getPixel = function(row, col) {
-    var rowOffset = self.imgData.width * row * 4;
-    var colOffset = col * 4;
-    var adjustedIndex = rowOffset + colOffset;
+    var idx = adjustIndex(row, col);
 
     return {
       row: row,
       col: col,
-      r: self.imgData.data[adjustedIndex],
-      g: self.imgData.data[adjustedIndex + 1],
-      b: self.imgData.data[adjustedIndex + 2],
-      a: self.imgData.data[adjustedIndex + 3]
+      r: self.imgData.data[idx],
+      g: self.imgData.data[idx + 1],
+      b: self.imgData.data[idx + 2],
+      a: self.imgData.data[idx + 3]
     }
   };
 
   self.setPixel = function(pixel) {
-    var rowOffset = self.imgData.width * pixel.row * 4;
-    var colOffset = pixel.col * 4;
-    var adjustedIndex = rowOffset + colOffset;
+    var idx = adjustIndex(pixel.row, pixel.col);
 
-    self.imgData.data[adjustedIndex] = pixel.r;
-    self.imgData.data[adjustedIndex + 1] = pixel.g;
-    self.imgData.data[adjustedIndex + 2] = pixel.b;
-    self.imgData.data[adjustedIndex + 3] = pixel.a;
+    self.imgData.data[idx] = pixel.r;
+    self.imgData.data[idx + 1] = pixel.g;
+    self.imgData.data[idx + 2] = pixel.b;
+    self.imgData.data[idx + 3] = pixel.a;
   };
 
   self.eachPixel = function(callback) {
@@ -249,6 +200,13 @@ function ImageDataWrapper(imgData) {
       colIndex++;
       callback(pixel);
     }
+  };
+
+  var adjustIndex = function(row, col) {
+    var rowOffset = self.imgData.width * row * 4;
+    var colOffset = col * 4;
+
+    return rowOffset + colOffset;
   };
 
   return self;
