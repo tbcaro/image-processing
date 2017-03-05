@@ -33,6 +33,8 @@ function App() {
     self.elements.btnNextImage = $('#btn-nextimg');
     self.elements.btnResetImage = $('#btn-reset');
 
+    self.elements.txtPixelSize = $('#txt-pixelsize');
+
     canvas = self.elements.canvas[0]; // TBC : Grab vanilla canvas reference from jquery wrapper
     context = canvas.getContext('2d');
 
@@ -99,8 +101,30 @@ function App() {
     self.drawImageData(imageDataCopy.imgData);
   };
 
-  self.pixelate = function() {
+  self.pixelate = function(size) {
+    var sz = size;
+    var offset = Math.floor(sz / 2);
 
+    var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
+    for (var i = 0; i < imageDataCopy.height(); i+=sz) {
+      for (var j = 0; j < imageDataCopy.width(); j+=sz) {
+        var centerPixel = imageDataCopy.getPixel(i + offset, j + offset);
+
+        for (var m = -offset; m <= offset; m++) {
+          for (var n = -offset; n <= offset; n++) {
+            var neighborPixel = imageDataCopy.getPixel(centerPixel.row + m, centerPixel.col + n);
+
+            neighborPixel.r = centerPixel.r;
+            neighborPixel.g = centerPixel.g;
+            neighborPixel.b = centerPixel.b;
+
+            imageDataCopy.setPixel(neighborPixel);
+          }
+        }
+      }
+    }
+
+    self.drawImageData(imageDataCopy.imgData);
   };
 
   self.loadImages = function(callback) {
@@ -142,7 +166,10 @@ function App() {
     self.elements.btnGreyscale.on('click', function() { self.greyscale(); });
     self.elements.btnLighten.on('click', function() { self.lighten(); });
     self.elements.btnDarken.on('click', function() { self.darken(); });
-    self.elements.btnPixelate.on('click', function() { self.pixelate(); });
+    self.elements.btnPixelate.on('click', function() {
+      var pixelSize = parseInt(self.elements.txtPixelSize.val());
+      self.pixelate(pixelSize);
+    });
     self.elements.btnPrevImage.on('click', function() { self.prevImage(); });
     self.elements.btnNextImage.on('click', function() { self.nextImage(); });
     self.elements.btnResetImage.on('click', function() { self.resetImage(); });
@@ -200,6 +227,14 @@ function ImageDataWrapper(imgData) {
       colIndex++;
       callback(pixel);
     }
+  };
+
+  self.width = function() {
+    return self.imgData.width;
+  };
+
+  self.height = function() {
+    return self.imgData.height;
   };
 
   var adjustIndex = function(row, col) {

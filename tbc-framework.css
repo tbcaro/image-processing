@@ -76,6 +76,17 @@
   cursor: pointer;
 }
 
+.textbox {
+  font-size: 12pt;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid lightgrey;
+}
+
+.textbox:focus {
+  border: 3px solid skyblue;
+}
+
 .button:active {
   box-shadow: unset;
 }
