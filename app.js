@@ -40,10 +40,7 @@ function App() {
     bindEventHandlers();
     loadImages(function(){
       self.drawImage(self.imageCursorIndex);
-      self.imageDataWrapper = new ImageDataWrapper(
-        self.getImageDataFromCanvas(), {
-        rowWidth: canvas.width
-      });
+      self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
       enableElements();
       console.log('app initialized');
     });
@@ -56,6 +53,7 @@ function App() {
     // If 0, go to max end of array
     self.imageCursorIndex === 0 ? self.imageCursorIndex = Object.keys(imgNames).length - 1 : self.imageCursorIndex--;
     self.drawImage(self.imageCursorIndex);
+    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
 
     console.log('prev image loaded');
   };
@@ -67,12 +65,25 @@ function App() {
     // If max, go to beginning of array
     self.imageCursorIndex === Object.keys(imgNames).length - 1 ? self.imageCursorIndex = 0 : self.imageCursorIndex++;
     self.drawImage(self.imageCursorIndex);
+    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
 
     console.log('next image loaded');
   };
 
   self.greyscale = function() {
     console.log('greyscaling image...');
+
+    var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
+    self.imageDataWrapper.eachPixel(function(pixel) {
+      var avg = (pixel.r + pixel.g + pixel.b) / 3;
+      pixel.r = avg;
+      pixel.g = avg;
+      pixel.b = avg;
+      imageDataCopy.setPixel(pixel);
+    });
+
+    self.drawImageData(imageDataCopy.imgData);
+    self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
 
     console.log('image greyscaled');
   };
@@ -105,7 +116,7 @@ function App() {
   var bindEventHandlers = function() {
     self.elements.btnGreyscale.on('click', function() {
       console.log('btnGreyscale clicked');
-      greyscale();
+      self.greyscale();
     });
     self.elements.btnLighten.on('click', function() {
       console.log('btnLighten clicked');
@@ -164,72 +175,89 @@ function App() {
   return self;
 }
 
-function ImageDataWrapper(imgData, options) {
+function ImageDataWrapper(imgData) {
   var self = this;
 
-  self.data = imgData || [];
-  self.rowWidth = options.rowWidth || 500;
+  self.imgData = imgData || { };
 
-  self.getPixelGrid = function() {
-    var rows = [];
-    var cols = [];
-
-    for (var i = 0; i < self.data.length; i+=4) {
-      // TBC : If i is first index in row, add to rows and start new row
-      if (i % (self.rowWidth * 4) === 0) {
-        rows.push(cols);
-        cols = [];
-      }
-      var pixel = { };
-
-      pixel.r = self.data[i];
-      pixel.g = self.data[i+1];
-      pixel.b = self.data[i+2];
-      pixel.a = self.data[i+3];
-
-      cols.push(pixel);
-    }
-
-    return rows;
-  };
+  // self.getPixelGrid = function() {
+  //   var rows = [];
+  //   var cols = [];
+  //
+  //   var rowIndex = 0;
+  //   var colIndex = 0;
+  //   for (var i = 0; i < self.imgData.data.length; i+=4) {
+  //     // TBC : If i is first index in row, add to rows and start new row
+  //     if (i % (self.imgData.width * 4) === 0) {
+  //       rowIndex++;
+  //       rows[rowIndex] = cols;
+  //       colIndex = 0;
+  //       cols = [];
+  //     }
+  //     var pixel = { };
+  //
+  //     pixel.row = rowIndex;
+  //     pixel.col = colIndex;
+  //     pixel.r = self.imgData.data[i];
+  //     pixel.g = self.imgData.data[i+1];
+  //     pixel.b = self.imgData.data[i+2];
+  //     pixel.a = self.imgData.data[i+3];
+  //
+  //     cols[colIndex] = pixel;
+  //     colIndex++;
+  //   }
+  //
+  //   return rows;
+  // };
 
   self.getPixel = function(row, col) {
-    var rowOffset = self.rowWidth * row * 4;
+    var rowOffset = self.imgData.width * row * 4;
     var colOffset = col * 4;
     var adjustedIndex = rowOffset + colOffset;
 
     return {
       row: row,
       col: col,
-      r: self.data[adjustedIndex],
-      g: self.data[adjustedIndex + 1],
-      b: self.data[adjustedIndex + 2],
-      a: self.data[adjustedIndex + 3]
+      r: self.imgData.data[adjustedIndex],
+      g: self.imgData.data[adjustedIndex + 1],
+      b: self.imgData.data[adjustedIndex + 2],
+      a: self.imgData.data[adjustedIndex + 3]
     }
   };
 
   self.setPixel = function(pixel) {
-    var rowOffset = self.rowWidth * pixel.row * 4;
+    var rowOffset = self.imgData.width * pixel.row * 4;
     var colOffset = pixel.col * 4;
     var adjustedIndex = rowOffset + colOffset;
 
-    self.data[adjustedIndex] = pixel.r;
-    self.data[adjustedIndex + 1] = pixel.g;
-    self.data[adjustedIndex + 2] = pixel.b;
-    self.data[adjustedIndex + 3] = pixel.a;
+    self.imgData.data[adjustedIndex] = pixel.r;
+    self.imgData.data[adjustedIndex + 1] = pixel.g;
+    self.imgData.data[adjustedIndex + 2] = pixel.b;
+    self.imgData.data[adjustedIndex + 3] = pixel.a;
   };
 
-  // TBC : Deep copy an element
-  self.clone = function() {
-    // TBC : Call constructor of original object to create a new copy
-    var copy = self.constructor();
+  self.eachPixel = function(callback) {
+    var rowIndex = 0;
+    var colIndex = 0;
+    for (var i = 0; i < self.imgData.data.length; i+=4) {
+      // TBC : If i is first index in row, reset column counter and bump row counter
+      if (i != 0 && i % (self.imgData.width * 4) === 0) {
+        rowIndex++;
+        colIndex = 0;
+      }
+      var pixel = { };
 
-    // TBC : Map all properties and values of original to copy
-    for (var key in self) {
-        if (self.hasOwnProperty(key)) copy[key] = self[key];
+      pixel.row = rowIndex;
+      pixel.col = colIndex;
+      pixel.r = self.imgData.data[i];
+      pixel.g = self.imgData.data[i+1];
+      pixel.b = self.imgData.data[i+2];
+      pixel.a = self.imgData.data[i+3];
+
+      colIndex++;
+      callback(pixel);
     }
-    return copy;
-  }
+  };
 
   return self;
 }
