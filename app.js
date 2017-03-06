@@ -6,6 +6,7 @@ $(document).ready(function() {
   TBC : The App object will be responsible for managing the application.
 */
 function App() {
+  // TBC : Self object for public properties / methods
   var self = this;
 
   self.elements = { };
@@ -13,6 +14,7 @@ function App() {
   self.imageCursorIndex = 0;
   self.imageDataWrapper = { };
 
+  // TBC : List of image names
   var imgNames = [
     'balls.jpg',
     'woods.jpg',
@@ -23,6 +25,7 @@ function App() {
   var context = { };
   var canvas = { };
 
+  // TBC : Formalize elements, grab context stuff, load images, and bind event handlers
   self.initialize = function() {
     self.elements.canvas = $('#canvas');
     self.elements.btnGreyscale = $('#btn-greyscale');
@@ -64,9 +67,11 @@ function App() {
     self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
   };
 
+  // TBC : Greys the current image on the canvas and redraws to canvas
   self.greyscale = function() {
     var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
     self.imageDataWrapper.eachPixel(function(pixel) {
+      // TBC : Average pixel colors to grey
       var avg = (pixel.r + pixel.g + pixel.b) / 3;
       pixel.r = avg;
       pixel.g = avg;
@@ -80,6 +85,7 @@ function App() {
   self.lighten = function() {
     var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
     self.imageDataWrapper.eachPixel(function(pixel) {
+      // TBC : Bump pixel color to lighten
       pixel.r += 10;
       pixel.g += 10;
       pixel.b += 10;
@@ -92,6 +98,7 @@ function App() {
   self.darken = function() {
     var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
     self.imageDataWrapper.eachPixel(function(pixel) {
+      // TBC : Subtract pixel color to darken
       pixel.r -= 10;
       pixel.g -= 10;
       pixel.b -= 10;
@@ -101,15 +108,20 @@ function App() {
     self.drawImageData(imageDataCopy.imgData);
   };
 
+  // TBC : Pixelate the current image on the canvas
   self.pixelate = function(size) {
+    // TBC : Size is the pixelated block size
     var sz = size;
+    // TBC : Offset to find the center pixel of sub grids
     var offset = Math.floor(sz / 2);
 
     var imageDataCopy = new ImageDataWrapper(self.imageDataWrapper.imgData);
     for (var i = 0; i < imageDataCopy.height(); i+=sz) {
       for (var j = 0; j < imageDataCopy.width(); j+=sz) {
+        // TBC : Find the center pixel in the subgrid
         var centerPixel = imageDataCopy.getPixel(i + offset, j + offset);
 
+        // TBC : Find all neighbors of center pixel and set their colors the same as the center
         for (var m = -offset; m <= offset; m++) {
           for (var n = -offset; n <= offset; n++) {
             var neighborPixel = imageDataCopy.getPixel(centerPixel.row + m, centerPixel.col + n);
@@ -127,6 +139,7 @@ function App() {
     self.drawImageData(imageDataCopy.imgData);
   };
 
+  // TBC : Load images in /img folder that are also in imgNames array
   self.loadImages = function(callback) {
     self.images = [];
 
@@ -139,6 +152,7 @@ function App() {
       img.src = path + filename;
       img.addEventListener('load', function() {
         loadedImages++;
+        // TBC : When all images are loaded, execute callback
         if (loadedImages === totalImages) {
           callback();
         }
@@ -148,20 +162,24 @@ function App() {
     });
   };
 
+  // TBC : Draw loaded image to canvas
   self.drawImage = function(index) {
     var img = self.images[index];
     context.drawImage(img, 0, 0);
   };
 
+  // TBC : Draw image data to canvas
   self.drawImageData = function(imageData) {
      context.putImageData(imageData, 0, 0);
      self.imageDataWrapper = new ImageDataWrapper(self.getImageDataFromCanvas());
   };
 
+  // TBC : Retrieve the image data from the canvas
   self.getImageDataFromCanvas = function() {
     return context.getImageData(0, 0, canvas.width, canvas.height);
   };
 
+  // TBC : Bind events
   var bindEventHandlers = function() {
     self.elements.btnGreyscale.on('click', function() { self.greyscale(); });
     self.elements.btnLighten.on('click', function() { self.lighten(); });
@@ -179,11 +197,19 @@ function App() {
   return self;
 }
 
+/*
+  TBC : The ImageDataWrapper object will be add abstraction to the imageData interface
+
+  - This allows getting/setting pixels as opposed to specific pixel data points
+  - This provides abstraction in a 2 dimensional row/column perspective as opposed to the underlying 1 dimensional construct
+  - Provides a utility for iterating through each pixel
+*/
 function ImageDataWrapper(imgData) {
   var self = this;
 
   self.imgData = imgData || { };
 
+  // TBC : Get data points at row/col in pixel format
   self.getPixel = function(row, col) {
     var idx = adjustIndex(row, col);
 
@@ -197,6 +223,7 @@ function ImageDataWrapper(imgData) {
     }
   };
 
+  // TBC : Set data points of pixel
   self.setPixel = function(pixel) {
     var idx = adjustIndex(pixel.row, pixel.col);
 
@@ -206,6 +233,7 @@ function ImageDataWrapper(imgData) {
     self.imgData.data[idx + 3] = pixel.a;
   };
 
+  // TBC : Utility that will iterate through each pixel and execute callback for pixel
   self.eachPixel = function(callback) {
     var rowIndex = 0;
     var colIndex = 0;
@@ -229,14 +257,17 @@ function ImageDataWrapper(imgData) {
     }
   };
 
+  // TBC : Get width
   self.width = function() {
     return self.imgData.width;
   };
 
+  // TBC : Get height
   self.height = function() {
     return self.imgData.height;
   };
 
+  // TBC : Return the underlying index for a specified row/col combination
   var adjustIndex = function(row, col) {
     var rowOffset = self.imgData.width * row * 4;
     var colOffset = col * 4;
